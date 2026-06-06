@@ -12,12 +12,21 @@ import sys
 # config
 HEADERS = {'user-agent': 'spider42/0.1'}
 EXTS = [".jpg", ".jpeg", ".png", ".gif", ".bmp"]
+PATH = "./data/"
 
 # class
 
 # functions
-def parse_argv(args: list):
-    
+def check_url(url: str) -> bool:
+    return True
+
+def parse_argv(args: list) -> bool:
+    url = args[len(args) - 1]
+    if check_url(url) == False:
+        return False
+    return url
+    # for x in args:
+    #     if x == 
 
 # main
 def main() -> None:
@@ -25,7 +34,10 @@ def main() -> None:
         print("AssertionError: wrong number of arguments")
         print("Usage: spider.py [-rl[N]p[PATH]] URL")
         return
-    parse_argv(sys.argv)
+    url = parse_argv(sys.argv)
+    r = requests.get(url, headers=HEADERS)
+    print(r.text)
+
 
 if __name__ == "__main__":
     main()
