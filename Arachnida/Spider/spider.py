@@ -6,8 +6,9 @@
 #   If not specified, ./data/ will be used
 
 # imports
-import requests
 import sys
+import requests
+from bs4 import BeautifulSoup
 
 # config
 HEADERS = {'user-agent': 'spider42/0.1'}
@@ -20,23 +21,37 @@ PATH = "./data/"
 def check_url(url: str) -> bool:
     return True
 
-def parse_argv(args: list) -> bool:
+# [r, l, p, url] = [bool, bool | int, str, bool | str]
+def parse_argv(args: list) -> list:
     url = args[len(args) - 1]
-    if check_url(url) == False:
-        return False
-    return url
-    # for x in args:
-    #     if x == 
+    # if check_url(url) == False:
+    #     return False
+    # return url    
+    return [False, False, PATH, url]
 
 # main
 def main() -> None:
     if len(sys.argv) < 2 or len(sys.argv) > 7:
         print("AssertionError: wrong number of arguments")
-        print("Usage: spider.py [-rl[N]p[PATH]] URL")
+        print("Usage: spider.py [-r] [-r -l LEVEL] [-p PATH]] URL")        
         return
-    url = parse_argv(sys.argv)
+    url = parse_argv(sys.argv)[3]
     r = requests.get(url, headers=HEADERS)
-    print(r.text)
+    # print(r.text)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    # print(soup)
+    for src in soup.find_all('img'):        
+        print("https://villarson.com/" + src.get('src'))
+        rep = requests.get("https://villarson.com/" + src.get('src'), headers=HEADERS)
+        print(rep.status_code)        
+        print(rep.headers.get("Content-Type"))
+        print(rep.text[:300])
+        # https://villarson.com/portfolio.phpptf/img/tot2.jpg
+        with open(PATH + "loopintro.jpg", "wb") as f:
+            f.write(rep.content)
+            # print(url + src.get('src'))
+
+   
 
 
 if __name__ == "__main__":
