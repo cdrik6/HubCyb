@@ -37,3 +37,24 @@
 #         return(src)
 #     else:
 #         return(urljoin(scheme, netloc, src))
+
+# try:
+    #     Path(PATH).mkdir(exist_ok=True)    
+    # except OSError as e:
+    #     print(f"Make directory failed: {e}")
+    
+    # url = scheme://netloc/path?query#fragment
+    # netloc = hostname:port
+    # netloc = urlparse(url).netloc
+    # scheme = urlparse(url).scheme
+    # url = params[3]
+    # if not is_valid_scheme(url):    
+    #     print("AssertionError: url not valid")
+    #     print("Valid url: http[s]://netloc[/path?query#fragment]")
+    #     return
+     
+          
+        
+
+   
+# https://villarson.com/portfolio.php
