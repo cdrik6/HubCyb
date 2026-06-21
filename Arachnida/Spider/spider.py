@@ -20,6 +20,7 @@ HEADERS = {'user-agent': 'spider42/0.1'}
 EXTS = ["jpg", "jpeg", "png", "gif", "bmp"]
 PATH = "./data/"
 USAGE = "Usage: spider.py [-r] [-r -l LEVEL] [-p PATH] URL"
+TIMEOUT = 5
 
 
 # class
@@ -32,18 +33,17 @@ class Params:
 
 
 # functions
-def is_valid_scheme(url: str) -> bool:    
+def is_valid_url(url: str) -> bool:    
     if url.startswith("http://") or url.startswith("https://"):        
-        return(True)
+        if urlparse(url).netloc:
+            return(True)
     return(False)
-
     
 def is_img(type: str) -> bool:
     for ext in EXTS:
         if type.startswith("image/" + ext):
             return(True)
     return(False)
-
 
 def save_img(link: str, path: str, img: bytes) -> bool:
     filename = Path(urlparse(link).path).name
@@ -58,18 +58,20 @@ def save_img(link: str, path: str, img: bytes) -> bool:
     return(False)   
 
 
-def get_img(url: str, path: str, headers: str) -> None:
+def get_img(url: str, path: str, headers: dict[str,str], timeout: int) -> None:
     try:
-        r = requests.get(url, headers=headers)    
+        r = requests.get(url, headers=headers, timeout=timeout)
+        r.raise_for_status() # 404 403 500
         soup = BeautifulSoup(r.text, 'html.parser')
         n = 0
-        for img in soup.find_all('img'): # background img via css
+        for img in soup.find_all('img'): # ###############background img via css
             src = img.get('src')
             if src is None or src == "":
                 continue
             try:
                 img_link = urljoin(url, src)
-                rep = requests.get(img_link, headers=headers)
+                rep = requests.get(img_link, headers=headers, timeout=timeout)
+                rep.raise_for_status()
                 # print(rep.status_code)        
                 if is_img(rep.headers.get("Content-Type", "")) and n < 2: # #######to remove ###############3
                     if save_img(img_link, path, rep.content):
@@ -83,17 +85,17 @@ def get_img(url: str, path: str, headers: str) -> None:
 def is_there_url(args: list[str]) -> int | None:
     idx = 0
     for i in range(1, len(args)):
-        if is_valid_scheme(args[i]):
+        if is_valid_url(args[i]):
             if idx != 0:
                 return(None) # too many url
             idx = i
     if idx != 0:
         return(idx)            
-    return(None)
+    return(None) # missing or not valid
 
 def is_there_recur(args: list[str]) -> bool:
-    for i in range(1, len(args)):
-        if args[i] == "-r":
+    for i in range(1, len(args)):        
+        if args[i].startswith("-") and "r" in args[i]:
                 return(True)
     return(False)
 
@@ -120,26 +122,26 @@ def parse_argv(args: list[str], usage: str, default_path: str) -> Params:
     if len(args) < 2 or len(args) > 7:
         print("Wrong number of arguments")
         print(usage)
-        sys.exit(1)
-    
-    level = 0
-    path = default_path
+        sys.exit(1)    
 
     url_idx = is_there_url(args)
     if url_idx is None:
-        print("URL missing, too many or not valid")
+        print("URL missing, duplicate or not valid")
         print (usage)
         print("Valid url: http[s]://netloc[/path?query#fragment]")
         sys.exit(1)
     url = args[url_idx]
 
+    level = 0
+    path = default_path
     recur = is_there_recur(args)
     if recur:
         level = 5
-
+    
     i = 1
+    # standard CLI design attaches values to their options.
     while i < len(args):        
-        if args[i] == "-p":
+        if args[i].startswith("-") and "p" in args[i]:
             if i == len(args) - 1 or i + 1 == url_idx:
                 print("The PATH is missing")                
                 print(usage)                
@@ -147,21 +149,21 @@ def parse_argv(args: list[str], usage: str, default_path: str) -> Params:
                 path = str(args[i + 1])                
                 i += 1        
             path = make_dir(path, default_path)
-        if args[i] == "-l":
+        if args[i].startswith("-") and "l" in args[i]:
             if not recur:
                 print("-l option is valid only with the -r option")
                 print(usage)
             elif i == len(args) - 1 or i + 1 == url_idx:
-                print("The LEVEL is missing")
+                print("The LEVEL is missing, 5 will be used")
                 print(usage)
             else:    
                 try:
                     level = int(args[i + 1])
                     if level < 0:
-                        print("The LEVEL should be a positive integer")
-                        level = 0
+                        print("The LEVEL should be a positive integer, 5 will be used")
+                        level = 5                        
                 except ValueError as e:
-                    print("The LEVEL should be an integer")
+                    print("The LEVEL should be an integer, 5 will be used")
                     print(usage)
         i += 1
 
@@ -170,9 +172,10 @@ def parse_argv(args: list[str], usage: str, default_path: str) -> Params:
 
 # main
 def main() -> None:    
-    params = parse_argv(sys.argv, USAGE, PATH) # ######### -rlp to do ############
-    get_img(params.url, params.path, HEADERS)
-
+    params = parse_argv(sys.argv, USAGE, PATH)
+    get_img(params.url, params.path, HEADERS, TIMEOUT)
+    # duplicate filename
+    # -foobar
     
 
 if __name__ == "__main__":
