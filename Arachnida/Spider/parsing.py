@@ -107,6 +107,5 @@ def parse_argv(args: list[str], usage: str, default_path: str) -> Params:
                     print("The LEVEL should be an integer, 5 will be used")
                     print(usage)
         i += 1
-
     
     return(Params(recur=recur, level=level, path=path, url=url))
