@@ -53,8 +53,24 @@
     #     print("Valid url: http[s]://netloc[/path?query#fragment]")
     #     return
      
-          
+# try:
+    #     r = requests.get(url, headers=headers, timeout=timeout)
+    #     r.raise_for_status() # 404 403 500
+    #     soup = BeautifulSoup(r.text, 'html.parser')        
         
 
    
 # https://villarson.com/portfolio.php
+
+def deslash(url: str) -> str:    
+    return(url.removesuffix("/"))
+
+# has_a_valid_ext = False
+#     for ext in EXTS:
+#         if src.endswith("." + ext):
+#              has_a_valid_ext = True
+# 
+# 
+# print(img_link)
+                # print(rep.headers.get("Content-Type"))
+                # print(len(rep.content))    
