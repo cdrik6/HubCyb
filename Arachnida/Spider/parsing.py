@@ -41,6 +41,19 @@ def is_there_recur(args: list[str]) -> bool:
     return False
 
 
+def check_tokens(args: list[str], url_idx: int) -> str | None:
+    options = {"-r", "-l", "-p"}
+    i = 1
+    while i < len(args):
+        if args[i].startswith("-") and args[i] not in options:
+            return args[i]
+        if args[i] not in options and i != url_idx:
+            if args[i - 1] not in {"-l", "-p"}:
+                return args[i]
+        i += 1
+    return None
+
+
 def make_dir(path: str, default_path: str) -> str:
     try:
         Path(path).mkdir(parents=True, exist_ok=True)
@@ -61,11 +74,13 @@ def make_dir(path: str, default_path: str) -> str:
 # [r, l, p, url] = [bool, int, str, str]
 def parse_argv(args: list[str], usage: str, default_path: str) -> Params:
 
+    # number of arguments
     if len(args) < 2 or len(args) > 7:
         print("Wrong number of arguments")
         print(usage)
         sys.exit(1)
 
+    # url
     url_idx = is_there_url(args)
     if url_idx is None:
         print("URL missing, duplicate or not valid")
@@ -74,20 +89,29 @@ def parse_argv(args: list[str], usage: str, default_path: str) -> Params:
         sys.exit(1)
     url = args[url_idx]
 
+    # invalid tokens
+    invalid = check_tokens(args, url_idx) 
+    if invalid is not None:
+        print(f"Invalid arguments: {invalid}")
+        print(usage)
+        sys.exit(1)
+
+    # default values
     level = 0
     path = default_path
     recur = is_there_recur(args)
     if recur:
         level = 5
 
-    i = 1
+    # options
     # standard CLI design attaches values to their options.
+    i = 1
     while i < len(args):
         # if args[i].startswith("-") and "p" in args[i]:
         if args[i] == "-p":
-            if i == len(args) - 1 or i + 1 == url_idx:
+            if i == len(args) - 1 or i + 1 == url_idx or args[i + 1] in {"-r", "-l", "-p"}:
                 print("The PATH is missing")
-                print(usage)
+                print(usage)            
             else:
                 path = str(args[i + 1])
                 i += 1
