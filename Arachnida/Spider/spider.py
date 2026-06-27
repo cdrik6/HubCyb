@@ -54,7 +54,7 @@ def main() -> None:
         crawl({params.url}, params, init_level, visited, stats)
         print(f"\nTotal saved: {stats.n_img} images")
     except KeyboardInterrupt:
-        print("\nSpider interrupted by user.")
+        print("\nSpider interrupted by user")
 
 
 if __name__ == "__main__":
