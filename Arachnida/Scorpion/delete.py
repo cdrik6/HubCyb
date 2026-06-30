@@ -1,7 +1,7 @@
 from PIL import Image
 from metadata import check_exts
 
-def delete_exif(img: Image, file:str) -> None:    
+def delete_exif(img: Image.Image, file:str) -> None:    
     print("\nEXIF state")
     print("----------")    
     exif = img.getexif()
@@ -10,7 +10,7 @@ def delete_exif(img: Image, file:str) -> None:
     else:        
         for k in list(exif.keys()):
             # list() create a copy so no danger to loop and delete            
-            del exif[k]
+            del exif[k] # clear() or delete specific Tag #########################################3
         try:
             img.save(file, exif=exif)
             print(f"Metadata of {file} deleted")

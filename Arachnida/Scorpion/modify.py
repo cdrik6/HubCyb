@@ -1,5 +1,8 @@
+import os
 from PIL import Image, ExifTags
 from metadata import check_exts
+from pathlib import Path
+
 
 # config
 NAME_TO_TAG = {
@@ -8,7 +11,7 @@ NAME_TO_TAG = {
 }
 
 
-def set_data(img: Image, file: str, data: dict[str, str]) -> None:
+def set_data(img: Image.Image, file: str, data: dict[str, str]) -> None:
     exif = img.getexif()    
     need_to_save = False
     print_tag_list = False
@@ -19,17 +22,23 @@ def set_data(img: Image, file: str, data: dict[str, str]) -> None:
             print_tag_list = True
         else:
             exif[tag] = v
-            need_to_save = True            
-    if print_tag_list:
-        print("EXIF tag list:")
-        for t, name in ExifTags.TAGS.items():        
-            print(f"{name}")
+            need_to_save = True
     if need_to_save:
         try:
-            img.save(file, exif=exif)
+            # need to try to save a tmp file first to protect the original one in case of issue
+            p = Path(file)
+            tmp = p.with_stem(p.stem + "_scorpion")
+            img.save(tmp, exif=exif)
+            os.replace(tmp, file)
             print(f"Metadata of {file} modified")
-        except OSError as e:
+        except Exception as e:
+            if tmp.exists():
+                tmp.unlink()
             print(f"Can't save {file}: {e}")
+    if print_tag_list:
+        print("\nEXIF tags list:")
+        for name in sorted(ExifTags.TAGS.values()):        
+            print(name)
  
 
 def modify_data(files: list[str], data: dict[str, str], exts: list[str]) -> None:
@@ -38,7 +47,10 @@ def modify_data(files: list[str], data: dict[str, str], exts: list[str]) -> None
             with Image.open(file) as img:
                 if img.format is None or not check_exts(img.format, exts):
                     print(f"Format not recognized: {file}")
-                else:    
+                    return None                    
+                if img.format.lower() == "gif" or img.format.lower() == "bmp":
+                    print("Metadata modification is not supported for GIF/BMP images")
+                else:
                     set_data(img, file, data)
         except OSError as e:
             print(f"Can't open {file}: {e}")

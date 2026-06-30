@@ -7,7 +7,7 @@ def check_exts(format: str, exts: list[str]) -> bool:
     return format.lower() in exts
 
 
-def print_exif(img: Image) -> None:    
+def print_exif(img: Image.Image) -> None:    
     print("\nEXIF")
     print("----")    
     exif = img.getexif()
@@ -18,7 +18,7 @@ def print_exif(img: Image) -> None:
         print(f"{tagname}: {v}")  # {ExifTags.Base(k).name}
 
 
-def print_attributes(img: Image, file: str) -> None:    
+def print_attributes(img: Image.Image, file: str) -> None:    
     p = Path(file)    
     decor = "=" * len(p.name)
     print("\n" + decor)
@@ -30,11 +30,11 @@ def print_attributes(img: Image, file: str) -> None:
     print(f"Size: {img.size}")
     print(f"Mode: {img.mode}")    
     print(
-        f"Last modification date: "
+        f"File modification time: "
         f"{datetime.fromtimestamp(p.stat().st_mtime):%Y-%m-%d %H:%M:%S}"
     )
     print(
-        f"Metadata last changed: "
+        f"Filesystem change time: "
         f"{datetime.fromtimestamp(p.stat().st_ctime):%Y-%m-%d %H:%M:%S}"
     )    
 
