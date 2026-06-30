@@ -74,3 +74,18 @@ def deslash(url: str) -> str:
 # print(img_link)
                 # print(rep.headers.get("Content-Type"))
                 # print(len(rep.content))    
+
+
+# Scorpion
+# gps_ifd = exif.get_ifd(ExifTags.IFD.GPSInfo)
+    # print(gps_ifd)
+
+# def check_exts(format: str, exts: list[str]) -> bool:
+#     for ext in exts:
+#         if format.lower() == ext:
+#             return True
+#     return False
+
+# tagname = ExifTags.TAGS.get(k, f"Unknown ({k})")
+            # print(f"{tagname}: deleted")
+
