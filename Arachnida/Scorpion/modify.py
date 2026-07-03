@@ -11,34 +11,67 @@ NAME_TO_TAG = {
 }
 
 
+TAG_SCHEMA = {
+    "Orientation": int,
+    "ISOSpeedRatings": int,
+    "Rating": int,
+    "ResolutionUnit": int,    
+    # "XResolution": float, # IFDRational
+    # "YResolution": float # IFDRational
+}
+
+
+def save_exif(img: Image.Image, file: str, exif: Image.Exif) -> None:
+    try:
+        # need to try to save a tmp file first to protect the original one in case of issue
+        p = Path(file)
+        tmp = p.with_stem(p.stem + "_scorpion")
+        img.save(tmp, exif=exif)
+        os.replace(tmp, file)
+        print(f"Metadata of {file} modified")
+    except Exception as e:
+        if tmp.exists():
+            tmp.unlink()
+        print(f"Can't save {file}: {e}")
+
+
+def print_exif_tags() -> None:
+    print("\nEXIF tags list:")
+    for name in sorted(ExifTags.TAGS.values()):        
+        print(name)
+
+
+def check_tag_type(tag_type: type, k: str, v: str) -> int | float | None:    
+    try:            
+        return tag_type(v)
+    except ValueError as e:
+        print(f"{k}: '{v}' is not a valid {tag_type.__name__}")
+        return None
+    
+
 def set_data(img: Image.Image, file: str, data: dict[str, str]) -> None:
     exif = img.getexif()    
     need_to_save = False
     print_tag_list = False
     for k, v in data.items():
         tag = NAME_TO_TAG.get(k)
+        # print(type(exif[tag]))  
+        tag_type = TAG_SCHEMA.get(k)
         if tag is None:
             print(f"Unknown EXIF tag: {k}")
             print_tag_list = True
+        elif tag_type is not None:
+            v_typed = check_tag_type(tag_type, k, v)
+            if v_typed is not None:
+                exif[tag] = v_typed
+                need_to_save = True
         else:
             exif[tag] = v
             need_to_save = True
     if need_to_save:
-        try:
-            # need to try to save a tmp file first to protect the original one in case of issue
-            p = Path(file)
-            tmp = p.with_stem(p.stem + "_scorpion")
-            img.save(tmp, exif=exif)
-            os.replace(tmp, file)
-            print(f"Metadata of {file} modified")
-        except Exception as e:
-            if tmp.exists():
-                tmp.unlink()
-            print(f"Can't save {file}: {e}")
+        save_exif(img, file, exif)
     if print_tag_list:
-        print("\nEXIF tags list:")
-        for name in sorted(ExifTags.TAGS.values()):        
-            print(name)
+        print_exif_tags()
  
 
 def modify_data(files: list[str], data: dict[str, str], exts: list[str]) -> None:
