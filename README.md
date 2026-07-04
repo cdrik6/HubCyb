@@ -14,3 +14,13 @@ https://arjancodes.com/blog/using-python-urllib-module-for-web-scraping-and-url-
 https://beautiful-soup-4.readthedocs.io/en/latest/#quick-start
 
 https://requests.readthedocs.io/en/latest/user/quickstart/
+
+
+| Command                                                 | Result               |
+| ------------------------------------------------------- | -------------------- |
+| `./scorpion file.jpg`                                   | Display metadata     |
+| `./scorpion -d file.jpg`                                | Delete all metadata  |
+| `./scorpion -d Artist file.jpg`                         | Delete only `Artist` |
+| `./scorpion -d Artist -d Copyright file.jpg`            | Delete both tags     |
+| `./scorpion -m Artist=Cedric file.jpg`                  | Modify one tag       |
+| `./scorpion -m Artist=Cedric -m Orientation=6 file.jpg` | Modify two tags      |
