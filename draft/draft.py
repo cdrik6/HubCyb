@@ -89,3 +89,8 @@ def deslash(url: str) -> str:
 # tagname = ExifTags.TAGS.get(k, f"Unknown ({k})")
             # print(f"{tagname}: deleted")
 
+# for k in list(exif.keys()):                
+#                 if tag == k:
+#                     # list() create a copy so no danger to loop and delete                                        
+#                     del exif[k]
+#                     del_name.append(name)

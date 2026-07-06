@@ -8,8 +8,7 @@ from modify import modify_data
 # class
 @dataclass
 class Params:
-    files: list[str]
-    delete: bool
+    files: list[str]    
     deldata: list[str]
     modify: bool
     newdata: dict[str, str]
@@ -34,18 +33,15 @@ def init_parser() -> Params:
         "-d",
         "--delete",
         action="append",
-        nargs="?",
-        const="ALL",
-        # nargs="*",        
-        metavar="TAG",
-        help="Delete all metadata, or only the specified EXIF tags"
+        metavar="Name",
+        help="Delete ALL metadata (-d ALL), or only the specified EXIF Name"
     )
     group.add_argument(
         "-m",
         "--modify",
-        action="append",
-        metavar="KEY=VALUE",
-        help="Modify one or more EXIF tags"
+        action="append",        
+        metavar="Name=Value",
+        help="Modify one or more EXIF Name"
     )
     args = parser.parse_args()        
     
@@ -57,17 +53,16 @@ def init_parser() -> Params:
         for m in args.modify:
             key, value = m.split("=", 1)
             newdata[key] = value
-    
-    # from string of parser to list of params ################# ici avec le ALL *************
-    deldata = []
-    delete = False
-    if args.delete is not None:
-        delete = True
-        for tag in args.delete:
-            deldata.append(tag)
+        
+    # from string of parser to list of params
+    deldata = []    
+    if args.delete is not None:        
+        for name in args.delete:
+            deldata.append(name)
+        print(deldata)
+
     return Params(
         files=args.files,
-        delete=delete,
         deldata=deldata,
         modify=modify,
         newdata=newdata
@@ -78,7 +73,7 @@ def init_parser() -> Params:
 def main() -> None:
     try:
         params = init_parser()
-        if params.delete:
+        if params.deldata:
             delete_data(params.files, params.deldata, EXTS)
         elif params.modify:
             modify_data(params.files, params.newdata, EXTS)

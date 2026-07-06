@@ -1,39 +1,53 @@
-from PIL import Image
+from PIL import Image, ExifTags
 from metadata import check_exts
 
 
+# config
+NAME_TO_TAG = {
+    name: tag
+    for tag, name in ExifTags.TAGS.items()
+}
+
+
+def delete_name(exif: Image.Exif, img: Image.Image, file: str, data: list[str]) -> None:
+    del_name = []
+    for name in data:
+        tag = NAME_TO_TAG.get(name)
+        if tag is None:
+            print(f"Unknown EXIF name: {name}")
+        else:
+            if exif.pop(tag, None) is not None:
+                del_name.append(name)            
+    if len(del_name) == 0:
+        print(f"Nothing to delete in {file}")
+    else:
+        try:
+            img.save(file, exif=exif) ############################### tmp
+            for name in del_name:
+                print(f"{name} deleted in {file}")
+        except OSError as e: ############################### Exception
+            print(f"Can't save {file}: {e}")
+
+
 def delete_exif(img: Image.Image, file: str, data: list[str]) -> None:
-    print(data)
     print("\nEXIF state")
     print("----------")    
     exif = img.getexif()
+    
     if exif is None or len(exif) == 0:
-        print("No EXIF metadata found")
-    else:
-        if len(data) == 0:
-            exif.clear()
-            try:
-                img.save(file, exif=exif)
-                print(f"Metadata of {file} deleted")
-            except OSError as e:
-                print(f"Can't save {file}: {e}")
-        else:            
-            found_tag = []
-            for tag in data:                
-                for k in list(exif.keys()):
-                    if tag == k:
-                        # list() create a copy so no danger to loop and delete            
-                        del exif[k]
-                        found_tag.append(tag)                    
-            if len(found_tag) == 0:
-                print(f"Nothing to delete in {file}")
-            else:
-                try:
-                    img.save(file, exif=exif)
-                    for tag in found_tag:
-                        print(f"{tag} deleted in {file}")
-                except OSError as e:
-                    print(f"Can't save {file}: {e}")
+        print("No EXIF metadata found, nothing to delete")
+        return None       
+    
+    if "ALL" in data:
+        exif.clear()
+        try:
+            img.save(file, exif=exif) ############################### tmp
+            print(f"Metadata of {file} deleted")
+        except OSError as e: ############################### Exception
+            print(f"Can't save {file}: {e}")
+    else:            
+        delete_name(exif, img, file, data)        
+        
 
 
 def delete_data(files: list[str], data: list[str], exts: list[str]) -> None:
