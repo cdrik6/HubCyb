@@ -90,7 +90,7 @@ def parse_argv(args: list[str], usage: str, default_path: str) -> Params:
     url = args[url_idx]
 
     # invalid tokens
-    invalid = check_tokens(args, url_idx) 
+    invalid = check_tokens(args, url_idx)
     if invalid is not None:
         print(f"Invalid arguments: {invalid}")
         print(usage)
@@ -111,7 +111,7 @@ def parse_argv(args: list[str], usage: str, default_path: str) -> Params:
         if args[i] == "-p":
             if i == len(args) - 1 or i + 1 == url_idx or args[i + 1] in {"-r", "-l", "-p"}:
                 print("The PATH is missing")
-                print(usage)            
+                print(usage)
             else:
                 path = str(args[i + 1])
                 i += 1

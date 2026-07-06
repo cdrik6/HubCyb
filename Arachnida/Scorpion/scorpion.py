@@ -5,12 +5,12 @@ from metadata import get_data
 from delete import delete_data
 from modify import modify_data
 
+
 # class
 @dataclass
 class Params:
-    files: list[str]    
+    files: list[str]
     deldata: list[str]
-    modify: bool
     newdata: dict[str, str]
 
 
@@ -19,7 +19,7 @@ EXTS = ["jpg", "jpeg", "png", "gif", "bmp"]
 
 
 # functions
-def init_parser() -> Params:    
+def init_parser() -> Params:
     parser = argparse.ArgumentParser(
         description="Display, delete or modify image metadata"
     )
@@ -39,32 +39,28 @@ def init_parser() -> Params:
     group.add_argument(
         "-m",
         "--modify",
-        action="append",        
+        action="append",
         metavar="Name=Value",
         help="Modify one or more EXIF Name"
     )
-    args = parser.parse_args()        
-    
+    args = parser.parse_args()
+
     # from string of parser to dict of params
     newdata = {}
-    modify = False
     if args.modify is not None:
-        modify = True
         for m in args.modify:
             key, value = m.split("=", 1)
             newdata[key] = value
-        
+
     # from string of parser to list of params
-    deldata = []    
-    if args.delete is not None:        
+    deldata = []
+    if args.delete is not None:
         for name in args.delete:
             deldata.append(name)
-        print(deldata)
 
     return Params(
         files=args.files,
         deldata=deldata,
-        modify=modify,
         newdata=newdata
     )
 
@@ -75,7 +71,7 @@ def main() -> None:
         params = init_parser()
         if params.deldata:
             delete_data(params.files, params.deldata, EXTS)
-        elif params.modify:
+        elif params.newdata:
             modify_data(params.files, params.newdata, EXTS)
         else:
             get_data(params.files, EXTS)

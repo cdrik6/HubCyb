@@ -94,3 +94,15 @@ def deslash(url: str) -> str:
 #                     # list() create a copy so no danger to loop and delete                                        
 #                     del exif[k]
 #                     del_name.append(name)
+
+# try:
+#             img.save(file, exif=exif) ############################### tmp
+            
+#         except OSError as e: ############################### Exception
+#             print(f"Can't save {file}: {e}")
+
+
+# try:
+#             img.save(file, exif=exif) ############################### tmp            
+#         except OSError as e: ############################### Exception
+#             print(f"Can't save {file}: {e}")

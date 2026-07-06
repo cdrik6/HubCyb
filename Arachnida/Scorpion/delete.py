@@ -1,12 +1,6 @@
-from PIL import Image, ExifTags
+from PIL import Image
 from metadata import check_exts
-
-
-# config
-NAME_TO_TAG = {
-    name: tag
-    for tag, name in ExifTags.TAGS.items()
-}
+from modify import save_exif, NAME_TO_TAG
 
 
 def delete_name(exif: Image.Exif, img: Image.Image, file: str, data: list[str]) -> None:
@@ -17,37 +11,29 @@ def delete_name(exif: Image.Exif, img: Image.Image, file: str, data: list[str]) 
             print(f"Unknown EXIF name: {name}")
         else:
             if exif.pop(tag, None) is not None:
-                del_name.append(name)            
+                del_name.append(name)
     if len(del_name) == 0:
         print(f"Nothing to delete in {file}")
     else:
-        try:
-            img.save(file, exif=exif) ############################### tmp
-            for name in del_name:
-                print(f"{name} deleted in {file}")
-        except OSError as e: ############################### Exception
-            print(f"Can't save {file}: {e}")
+        save_exif(img, file, exif)
+        for name in del_name:
+            print(f"{name} deleted in {file}")
 
 
 def delete_exif(img: Image.Image, file: str, data: list[str]) -> None:
-    print("\nEXIF state")
-    print("----------")    
+    print(f"\nEXIF state ({file})")
+    print("----------")
     exif = img.getexif()
-    
     if exif is None or len(exif) == 0:
         print("No EXIF metadata found, nothing to delete")
-        return None       
-    
+        return None
+
     if "ALL" in data:
         exif.clear()
-        try:
-            img.save(file, exif=exif) ############################### tmp
-            print(f"Metadata of {file} deleted")
-        except OSError as e: ############################### Exception
-            print(f"Can't save {file}: {e}")
-    else:            
-        delete_name(exif, img, file, data)        
-        
+        save_exif(img, file, exif)
+        print(f"Metadata of {file} deleted")
+    else:
+        delete_name(exif, img, file, data)
 
 
 def delete_data(files: list[str], data: list[str], exts: list[str]) -> None:

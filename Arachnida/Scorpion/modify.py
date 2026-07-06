@@ -15,7 +15,7 @@ TAG_SCHEMA = {
     "Orientation": int,
     "ISOSpeedRatings": int,
     "Rating": int,
-    "ResolutionUnit": int,    
+    "ResolutionUnit": int,
     # "XResolution": float, # IFDRational
     # "YResolution": float # IFDRational
 }
@@ -25,7 +25,8 @@ def save_exif(img: Image.Image, file: str, exif: Image.Exif) -> None:
     try:
         # need to try to save a tmp file first to protect the original one in case of issue
         p = Path(file)
-        tmp = p.with_stem(p.stem + "_scorpion")
+        # tmp = p.with_stem(p.stem + "_scorpion")
+        tmp = p.with_name(f"{p.stem}_scorpion{p.suffix}")
         img.save(tmp, exif=exif)
         os.replace(tmp, file)
         print(f"Metadata of {file} modified")
@@ -37,25 +38,25 @@ def save_exif(img: Image.Image, file: str, exif: Image.Exif) -> None:
 
 def print_exif_tags() -> None:
     print("\nEXIF tags list:")
-    for name in sorted(ExifTags.TAGS.values()):        
+    for name in sorted(ExifTags.TAGS.values()):
         print(name)
 
 
-def check_tag_type(tag_type: type, k: str, v: str) -> int | float | None:    
-    try:            
+def check_tag_type(tag_type: type, k: str, v: str) -> int | float | None:
+    try:
         return tag_type(v)
-    except ValueError as e:
+    except ValueError:
         print(f"{k}: '{v}' is not a valid {tag_type.__name__}")
         return None
-    
+
 
 def set_data(img: Image.Image, file: str, data: dict[str, str]) -> None:
-    exif = img.getexif()    
+    exif = img.getexif()
     need_to_save = False
     print_tag_list = False
     for k, v in data.items():
         tag = NAME_TO_TAG.get(k)
-        # print(type(exif[tag]))  
+        # print(type(exif[tag]))
         tag_type = TAG_SCHEMA.get(k)
         if tag is None:
             print(f"Unknown EXIF tag: {k}")
@@ -72,7 +73,7 @@ def set_data(img: Image.Image, file: str, data: dict[str, str]) -> None:
         save_exif(img, file, exif)
     if print_tag_list:
         print_exif_tags()
- 
+
 
 def modify_data(files: list[str], data: dict[str, str], exts: list[str]) -> None:
     for file in files:
@@ -80,7 +81,7 @@ def modify_data(files: list[str], data: dict[str, str], exts: list[str]) -> None
             with Image.open(file) as img:
                 if img.format is None or not check_exts(img.format, exts):
                     print(f"Format not recognized: {file}")
-                    return None                    
+                    return None
                 if img.format.lower() == "gif" or img.format.lower() == "bmp":
                     print("Metadata modification is not supported for GIF/BMP images")
                 else:
