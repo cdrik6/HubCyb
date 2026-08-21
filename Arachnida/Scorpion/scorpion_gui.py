@@ -4,32 +4,41 @@ from scorpion import EXTS
 from PIL import Image, ImageTk
 
 
-def check_exts(format: str, exts: list[str]) -> bool:
-    return format.lower() in exts
-
-
-def get_data(files: list[str], exts: list[str]) -> None:
-    for file in files:
-        try:
-            with Image.open(file) as img:
-                if img.format is None or not check_exts(img.format, exts):
-                    print(f"Format not recognized: {file}")
-                else:
-                    img = Image.open(file)
-                    img.thumbnail((500, 400))
-                    photo = ImageTk.PhotoImage(img)
-                    image_label.config(image=photo)
-                    image_label.image = photo
-        except OSError as e:
-            print(f"Can't open {file}: {e}")
-
-
 def on_close(root):
     print("\nClosing Scorpion")
     root.destroy()
 
 
-def select_image():
+def check_exts(format: str, exts: list[str]) -> bool:
+    return format.lower() in exts
+
+
+def get_data(file: str, exts: list[str]) -> None:    
+    try:
+        with Image.open(file) as img:
+            if img.format is None or not check_exts(img.format, exts):
+                print(f"Format not recognized: {file}")
+            else:
+                print_attributes(img, file)
+                print_exif(img)
+    except OSError as e:
+        print(f"Can't open {file}: {e}")
+
+
+def get_photo(file: str, exts: list[str]) -> ImageTk.PhotoImage | None:
+    try:
+        with Image.open(file) as img:
+            if img.format is None or not check_exts(img.format, exts):
+                print(f"Format not recognized: {file}")
+            else:                
+                img.thumbnail((400, 400))
+                photo = ImageTk.PhotoImage(img)                    
+                return photo                
+    except OSError as e:
+        print(f"Can't open {file}: {e}")
+
+
+def select_image(img_lbl):
     filename = filedialog.askopenfilename(
         title = "Select an image",
         filetypes = [
@@ -39,14 +48,13 @@ def select_image():
     )
     if not filename:
         return
-    get_data([filename], EXTS)
-
-    
-    
-    
-    
-    
-
+    photo = get_photo(filename, EXTS)
+    if photo is not None:
+        img_lbl.config(image=photo, text="")
+        img_lbl.image = photo 
+    else:   
+        img_lbl.config(image="", text="Unable to display this image")
+        img_lbl.image = None
 
 def main():
     try:
@@ -73,24 +81,27 @@ def main():
         metadata_frame = tk.Frame(main_frame, borderwidth=1, relief="solid")
         metadata_frame.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
-
         # 
+        img_lbl = tk.Label(preview_frame, text="image preview")
+        img_lbl.pack()
+        data_lbl = tk.Label(metadata_frame, text="metadata")
+        data_lbl.pack()
 
+        #
         lbl = tk.Label(open_frame, text="To get the metadata of an image, please open it here:")
         lbl.pack(expand=True)
-        btn = tk.Button(open_frame, text="Open", command=select_image)    
-        btn.pack(padx=10, pady=10)
+        btn = tk.Button(
+            open_frame,
+            text="Open",
+            command=lambda: (
+                select_image(img_lbl),
+                get_data(data_lbl)
+            )
+        )
+        btn.pack(padx=10, pady=10)        
 
-        # lbl = tk.Label(root)
-        # lbl.grid(row=1, column=0)
-        lbl2 = tk.Label(preview_frame, text="test preview")
-        lbl2.pack()
-        lbl3 = tk.Label(metadata_frame, text="test meta")
-        lbl3.pack()
         
-
-        # 
-        
+        #        
         root.mainloop()
     except KeyboardInterrupt:
         print("\nScorpion interrupted by user")
