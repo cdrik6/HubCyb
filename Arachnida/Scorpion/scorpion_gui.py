@@ -77,13 +77,18 @@ def main():
         root.protocol("WM_DELETE_WINDOW", lambda: on_close(root))
         root.title("Scorpion")
         # root.geometry("1000x600")
-        # main_frame = tk.Frame(root, width=900, height=500)
+        main_frame = tk.Frame(root, width=600, height=200, borderwidth=1, relief="solid")
         main_frame = tk.Frame(root)
         # main_frame.pack_propagate(False)
         main_frame.pack(padx=20, pady=20)
 
-        main_frame.columnconfigure(0, weight=1)
-        main_frame.columnconfigure(1, weight=1)
+        main2_frame = tk.Frame(root, width=600, height=200, borderwidth=1, relief="solid")
+        main2_frame = tk.Frame(root)
+        # main_frame.pack_propagate(False)
+        main2_frame.pack(padx=20, pady=20)
+
+        # main_frame.columnconfigure(0, weight=1)
+        # main_frame.columnconfigure(1, weight=1)
         # main_frame.rowconfigure(0, weight=1)
         # main_frame.rowconfigure(1, weight=1)
 
