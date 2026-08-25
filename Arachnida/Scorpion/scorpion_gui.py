@@ -4,6 +4,7 @@ from scorpion import EXTS
 from PIL import Image, ImageTk, ExifTags
 from pathlib import Path
 from datetime import datetime
+from delete_gui import delete_all, delete_one
 
 
 def on_close(root):
@@ -28,7 +29,7 @@ def show_exif(img: Image.Image, tree: ttk.Treeview) -> None:
     for k, v in exif.items():
         tagname = ExifTags.TAGS.get(k, f"Unknown ({k})")        
         tree.insert("", "end", values=(tagname, v))
-
+    tree.insert("", "end", values=("", ""))
 
 def show_attributes(img: Image.Image, file: str, tree: ttk.Treeview) -> None:
     p = Path(file)
@@ -70,26 +71,26 @@ def get_photo(file: str, exts: list[str]) -> ImageTk.PhotoImage | None:
         print(f"Can't open {file}: {e}")
 
 
-def select_image(img_lbl: tk.Label, tree: ttk.Treeview):
-    filename = filedialog.askopenfilename(
+def select_image(img_lbl: tk.Label, tree: ttk.Treeview, filename: list[str]):
+    selected = filedialog.askopenfilename(
         title = "Select an image",
         filetypes = [
             ("Images", "*.jpg *.jpeg *.png *.gif *.bmp"),
             ("All files", "*.*")
         ]
     )    
-    if not filename:
+    if not selected:
         return
+    filename[0] = selected
     clear_tree(tree)
-    photo = get_photo(filename, EXTS)
+    photo = get_photo(selected, EXTS)
     if photo is not None:
         img_lbl.config(image=photo, text="")
         img_lbl.image = photo         
-        get_data(filename, EXTS, tree)
+        get_data(selected, EXTS, tree)        
     else:   
         img_lbl.config(image="", text="Unable to display this image")
-        img_lbl.image = None
-    
+        img_lbl.image = None    
 
 def main():
     try:
@@ -112,13 +113,11 @@ def main():
         root.rowconfigure(0, weight=0)
         root.rowconfigure(1, weight=1)
         root.rowconfigure(2, weight=0)
-        root.rowconfigure(3, weight=1)       
+        root.rowconfigure(3, weight=0)       
 
-        #
         img_lbl = tk.Label(image_frame, text="image preview")
         img_lbl.pack()
 
-        #
         tree = ttk.Treeview(data_frame, columns=("name", "value"), show="headings")
         tree.heading("name", text="Metadata")
         tree.heading("value", text="Value")
@@ -126,13 +125,24 @@ def main():
         tree.column("value", width=250)
         tree.pack(padx=10, pady=10)
 
-        #
         lbl = tk.Label(open_frame, text="To get the metadata of an image, please open it here:")
         lbl.pack() #(expand=True)
-        btn = tk.Button(open_frame, text="Open", command=lambda: select_image(img_lbl, tree))
+        filename = [None]
+        btn = tk.Button(open_frame, text="Open", command=lambda: select_image(img_lbl, tree, filename))
         btn.pack(padx=10, pady=10)
+
+        button_frame.rowconfigure(0, weight=1)
+        button_frame.columnconfigure(0, weight=1)
+        button_frame.columnconfigure(1, weight=1)
+        button_frame.columnconfigure(2, weight=1)
         
-        #        
+        btn_mod = tk.Button(button_frame, text="Modify", command=lambda: 0)
+        btn_mod.grid(row=0, column=0, padx=10, pady=10)
+        btn_del = tk.Button(button_frame, text="Delete", command=lambda: delete_one(filename, EXTS, tree))
+        btn_del.grid(row=0, column=1, padx=10, pady=10)
+        btn_all = tk.Button(button_frame, text="Delete All", command=lambda: delete_all(filename, EXTS, tree))
+        btn_all.grid(row=0, column=2, padx=10, pady=10)
+                
         root.mainloop()
     except KeyboardInterrupt:
         print("\nScorpion interrupted by user")
