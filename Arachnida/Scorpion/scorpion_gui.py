@@ -5,6 +5,7 @@ from PIL import Image, ImageTk, ExifTags
 from pathlib import Path
 from datetime import datetime
 from delete_gui import delete_all, delete_one
+from modify_gui import modify
 
 
 def on_close(root):
@@ -92,6 +93,18 @@ def select_image(img_lbl: tk.Label, tree: ttk.Treeview, filename: list[str]):
         img_lbl.config(image="", text="Unable to display this image")
         img_lbl.image = None    
 
+
+def on_selected(tree: ttk.Treeview, name_entry: tk.Entry, value_entry:tk.Entry):
+    selection = tree.selection()
+    if not selection:
+        return        
+    values = tree.item(selection[0], "values")    
+    name_entry.delete(0, tk.END)
+    name_entry.insert(0, values[0])
+    value_entry.delete(0, tk.END)
+    value_entry.insert(0, values[1])
+
+
 def main():
     try:
         print("Opening Scorpion\n")
@@ -106,14 +119,17 @@ def main():
         image_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         data_frame = tk.Frame(root, borderwidth=2, relief="solid")
         data_frame.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
-        button_frame = tk.Frame(root, borderwidth=2, relief="solid")
-        button_frame.grid(row=3, column=0, padx=10, pady=10, sticky="nsew")
+        mod_frame = tk.Frame(root, borderwidth=2, relief="solid")
+        mod_frame.grid(row=3, column=0, padx=10, pady=10, sticky="nsew")
+        del_frame = tk.Frame(root, borderwidth=2, relief="solid")
+        del_frame.grid(row=4, column=0, padx=10, pady=10, sticky="nsew")
 
         root.columnconfigure(0, weight=1)
         root.rowconfigure(0, weight=0)
         root.rowconfigure(1, weight=1)
         root.rowconfigure(2, weight=0)
-        root.rowconfigure(3, weight=0)       
+        root.rowconfigure(3, weight=0)
+        root.rowconfigure(4, weight=0)
 
         img_lbl = tk.Label(image_frame, text="image preview")
         img_lbl.pack()
@@ -129,19 +145,31 @@ def main():
         lbl.pack() #(expand=True)
         filename = [None]
         btn = tk.Button(open_frame, text="Open", command=lambda: select_image(img_lbl, tree, filename))
-        btn.pack(padx=10, pady=10)
+        btn.pack(padx=10, pady=10)        
 
-        button_frame.rowconfigure(0, weight=1)
-        button_frame.columnconfigure(0, weight=1)
-        button_frame.columnconfigure(1, weight=1)
-        button_frame.columnconfigure(2, weight=1)
-        
-        btn_mod = tk.Button(button_frame, text="Modify", command=lambda: 0)
-        btn_mod.grid(row=0, column=0, padx=10, pady=10)
-        btn_del = tk.Button(button_frame, text="Delete", command=lambda: delete_one(filename, EXTS, tree))
-        btn_del.grid(row=0, column=1, padx=10, pady=10)
-        btn_all = tk.Button(button_frame, text="Delete All", command=lambda: delete_all(filename, EXTS, tree))
-        btn_all.grid(row=0, column=2, padx=10, pady=10)
+        name_line = tk.Frame(mod_frame)
+        name_lbl = tk.Label(name_line, text="Name:")
+        name_lbl.pack(side="left", padx=(0, 5))
+        name_entry = tk.Entry(name_line)
+        name_entry.pack(side="left")
+        name_line.pack(padx=10, pady=10)
+        value_line = tk.Frame(mod_frame)
+        value_lbl = tk.Label(value_line, text="Value:")
+        value_lbl.pack(side="left", padx=(0, 5))
+        value_entry = tk.Entry(value_line)
+        value_entry.pack(side="left")
+        value_line.pack(padx=10, pady=10)
+        btn_mod = tk.Button(mod_frame, text="Modify", command=lambda: modify(filename, EXTS, name_entry, value_entry, tree))
+        btn_mod.pack(padx=10, pady=10)
+        tree.bind("<<TreeviewSelect>>", lambda event: on_selected(tree, name_entry, value_entry))
+
+        del_frame.rowconfigure(0, weight=1)
+        del_frame.columnconfigure(0, weight=1)
+        del_frame.columnconfigure(1, weight=1)
+        btn_del = tk.Button(del_frame, text="Delete", command=lambda: delete_one(filename, EXTS, tree))
+        btn_del.grid(row=0, column=0, padx=10, pady=10)
+        btn_all = tk.Button(del_frame, text="Delete All", command=lambda: delete_all(filename, EXTS, tree))
+        btn_all.grid(row=0, column=1, padx=10, pady=10)
                 
         root.mainloop()
     except KeyboardInterrupt:

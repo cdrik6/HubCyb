@@ -43,9 +43,9 @@ def delete_name(exif: Image.Exif, img: Image.Image, file: str, data: list[str], 
     if len(del_name) == 0:        
         tree.insert("", "end", values=("Nothing to delete", ""))
     else:
-        save_exif(img, file, exif)
-        for name in del_name:            
-            tree.insert("", "end", values=(name, "deleted"))
+        if save_exif(img, file, exif):
+            for name in del_name:            
+                tree.insert("", "end", values=(name, "deleted"))
 
 
 def delete_exif(img: Image.Image, file: str, data: list[str], tree: ttk.Treeview) -> None:    

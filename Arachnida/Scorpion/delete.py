@@ -15,9 +15,9 @@ def delete_name(exif: Image.Exif, img: Image.Image, file: str, data: list[str]) 
     if len(del_name) == 0:
         print(f"Nothing to delete in {file}")
     else:
-        save_exif(img, file, exif)
-        for name in del_name:
-            print(f"{name} deleted in {file}")
+        if save_exif(img, file, exif):
+            for name in del_name:
+                print(f"{name} deleted in {file}")
 
 
 def delete_exif(img: Image.Image, file: str, data: list[str]) -> None:
@@ -30,8 +30,8 @@ def delete_exif(img: Image.Image, file: str, data: list[str]) -> None:
 
     if "ALL" in data:
         exif.clear()
-        save_exif(img, file, exif)
-        print(f"Metadata of {file} deleted")
+        if save_exif(img, file, exif):
+            print(f"Metadata of {file} deleted")
     else:
         delete_name(exif, img, file, data)
 

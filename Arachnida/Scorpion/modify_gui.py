@@ -2,6 +2,8 @@ import os
 from PIL import Image, ExifTags
 from metadata import check_exts
 from pathlib import Path
+import tkinter as tk
+from tkinter import ttk
 
 
 # config
@@ -19,6 +21,11 @@ TAG_SCHEMA = {
     # "XResolution": float, # IFDRational
     # "YResolution": float # IFDRational
 }
+
+
+def clear_tree(tree: ttk.Treeview):
+    for item in tree.get_children():
+        tree.delete(item)
 
 
 def save_exif(img: Image.Image, file: str, exif: Image.Exif) -> bool:
@@ -52,7 +59,7 @@ def check_tag_type(tag_type: type, k: str, v: str) -> int | float | None:
         return None
 
 
-def set_data(img: Image.Image, file: str, data: dict[str, str]) -> None:
+def set_data(img: Image.Image, file: str, data: dict[str, str], tree: ttk.Treeview) -> None:
     exif = img.getexif()
     need_to_save = False
     print_tag_list = False
@@ -60,8 +67,8 @@ def set_data(img: Image.Image, file: str, data: dict[str, str]) -> None:
         tag = NAME_TO_TAG.get(k)
         # print(type(exif[tag]))
         tag_type = TAG_SCHEMA.get(k)
-        if tag is None:
-            print(f"Unknown EXIF tag: {k}")
+        if tag is None:            
+            tree.insert("", "end", values=("Unknown EXIF tag", k))
             print_tag_list = True
         elif tag_type is not None:
             v_typed = check_tag_type(tag_type, k, v)
@@ -72,12 +79,16 @@ def set_data(img: Image.Image, file: str, data: dict[str, str]) -> None:
             exif[tag] = v
             need_to_save = True
     if need_to_save:
-        save_exif(img, file, exif)
+        if save_exif(img, file, exif):
+            name, value = next(iter(data.items()))
+            tree.insert("", "end", values=(name, value))
+        else:
+            tree.insert("", "end", values=("Can't save the new value", ""))
     if print_tag_list:
         print_exif_tags()
 
 
-def modify_data(files: list[str], data: dict[str, str], exts: list[str]) -> None:
+def modify_data(files: list[str], data: dict[str, str], exts: list[str], tree: ttk.Treeview) -> None:
     for file in files:
         try:
             with Image.open(file) as img:
@@ -87,6 +98,17 @@ def modify_data(files: list[str], data: dict[str, str], exts: list[str]) -> None
                 if img.format.lower() == "gif" or img.format.lower() == "bmp":
                     print("Metadata modification is not supported for GIF/BMP images")
                 else:
-                    set_data(img, file, data)
+                    set_data(img, file, data, tree)
         except OSError as e:
             print(f"Can't open {file}: {e}")
+
+
+def modify(files: list[str], exts: list[str], n_entry: tk.Entry, v_entry: tk.Entry, tree: ttk.Treeview) -> None:
+    if files[0] is None:
+        return
+    name = n_entry.get()
+    value = v_entry.get()    
+    if not name or not value:
+        return
+    data = {name : value}
+    modify_data(files, data, exts, tree)
