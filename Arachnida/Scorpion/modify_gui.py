@@ -23,23 +23,19 @@ TAG_SCHEMA = {
 }
 
 
-def clear_tree(tree: ttk.Treeview):
-    for item in tree.get_children():
-        tree.delete(item)
-
-
 def save_exif(img: Image.Image, file: str, exif: Image.Exif) -> bool:
+    tmp = None
     try:
         # need to try to save a tmp file first to protect the original one in case of issue
         p = Path(file)
         # tmp = p.with_stem(p.stem + "_scorpion")
         tmp = p.with_name(f"{p.stem}_scorpion{p.suffix}")
-        img.save(tmp, exif=exif)
+        img.save(tmp, exif=exif)    
         os.replace(tmp, file)
         print(f"Metadata of {file} modified")
         return True
     except Exception as e:
-        if tmp.exists():
+        if tmp is not None and tmp.exists():
             tmp.unlink()
         print(f"Can't save {file}: {e}")
         return False
@@ -51,11 +47,12 @@ def print_exif_tags() -> None:
         print(name)
 
 
-def check_tag_type(tag_type: type, k: str, v: str) -> int | float | None:
+def check_tag_type(tag_type: type, k: str, v: str, tree: ttk.Treeview) -> int | float | None:
     try:
         return tag_type(v)
     except ValueError:
         print(f"{k}: '{v}' is not a valid {tag_type.__name__}")
+        tree.insert("", "end", values=(k, f"{v} is not a valid {tag_type.__name__}"))
         return None
 
 
@@ -71,7 +68,7 @@ def set_data(img: Image.Image, file: str, data: dict[str, str], tree: ttk.Treevi
             tree.insert("", "end", values=("Unknown EXIF tag", k))
             print_tag_list = True
         elif tag_type is not None:
-            v_typed = check_tag_type(tag_type, k, v)
+            v_typed = check_tag_type(tag_type, k, v, tree)
             if v_typed is not None:
                 exif[tag] = v_typed
                 need_to_save = True
@@ -96,7 +93,8 @@ def modify_data(files: list[str], data: dict[str, str], exts: list[str], tree: t
                     print(f"Format not recognized: {file}")
                     return None
                 if img.format.lower() == "gif" or img.format.lower() == "bmp":
-                    print("Metadata modification is not supported for GIF/BMP images")
+                    # print("Metadata modification is not supported for GIF/BMP images")
+                    tree.insert("", "end", values=("Metadata modification is not supported", "for GIF/BMP images"))
                 else:
                     set_data(img, file, data, tree)
         except OSError as e:

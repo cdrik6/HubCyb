@@ -22,6 +22,7 @@ TAG_SCHEMA = {
 
 
 def save_exif(img: Image.Image, file: str, exif: Image.Exif) -> bool:
+    tmp = None
     try:
         # need to try to save a tmp file first to protect the original one in case of issue
         p = Path(file)
@@ -32,7 +33,7 @@ def save_exif(img: Image.Image, file: str, exif: Image.Exif) -> bool:
         print(f"Metadata of {file} modified")
         return True
     except Exception as e:
-        if tmp.exists():
+        if tmp is not None and tmp.exists():
             tmp.unlink()
         print(f"Can't save {file}: {e}")
         return False

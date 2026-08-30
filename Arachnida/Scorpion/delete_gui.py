@@ -4,9 +4,12 @@ from modify import save_exif, NAME_TO_TAG
 from tkinter import ttk
 
 
-def clear_tree(tree: ttk.Treeview):
+def clear_exif(tree: ttk.Treeview):
+    attributes = ["Name", "Format", "Size", "Mode", "File modification time", "Filesystem change time",""]
     for item in tree.get_children():
-        tree.delete(item)
+        data_name = tree.item(item, "values")[0]
+        if data_name not in attributes:
+            tree.delete(item)
 
 
 def delete_all(files: list[str], exts: list[str], tree: ttk.Treeview) -> None:
@@ -23,12 +26,17 @@ def delete_one(files: list[str], exts: list[str], tree: ttk.Treeview) -> None:
     if not selection:
         return
     values = []
+    attributes = ["Name", "Format", "Size", "Mode", "File modification time", "Filesystem change time",""]
     for item in selection:        
-        values.append(tree.item(item, "values")[0])
+        data_name = tree.item(item, "values")[0]
+        if data_name not in attributes:
+            values.append(data_name)
     # print(values)
     delete_data(files, values, exts, tree)
     for item in selection:
-        tree.delete(item)
+        data_name = tree.item(item, "values")[0]
+        if data_name not in attributes:
+            tree.delete(item)
 
 
 def delete_name(exif: Image.Exif, img: Image.Image, file: str, data: list[str], tree: ttk.Treeview) -> None:
@@ -37,8 +45,8 @@ def delete_name(exif: Image.Exif, img: Image.Image, file: str, data: list[str], 
         tag = NAME_TO_TAG.get(name)
         if tag is None:            
             tree.insert("", "end", values=(name, "Unknown EXIF name"))
-        else:
-            if exif.pop(tag, None) is not None:
+        else:            
+            if exif.pop(tag, None) is not None:                
                 del_name.append(name)                
     if len(del_name) == 0:        
         tree.insert("", "end", values=("Nothing to delete", ""))
@@ -55,9 +63,11 @@ def delete_exif(img: Image.Image, file: str, data: list[str], tree: ttk.Treeview
         return None
     if "ALL" in data:
         exif.clear()
-        save_exif(img, file, exif)
-        clear_tree(tree)
-        tree.insert("", "end", values=("Exif Metadata deleted", ""))
+        if save_exif(img, file, exif):
+            clear_exif(tree)
+            tree.insert("", "end", values=("Exif Metadata deleted", ""))
+        else:
+            tree.insert("", "end", values=("Can't delete metadata", ""))
     else:
         delete_name(exif, img, file, data, tree)
 
