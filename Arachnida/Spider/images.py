@@ -51,7 +51,7 @@ def get_img(url: str, path: str, headers: dict[str, str], timeout: int, stats: S
     n = 0
     for img in soup.find_all('img'):  # only img tag
         src = img.get('src')
-        if src is None or src == "":
+        if src is None or src == "" or src.startswith("data:"): # not src => src is None or src == ""
             continue
         try:
             img_link = urljoin(url, src)

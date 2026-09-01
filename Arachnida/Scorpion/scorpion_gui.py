@@ -17,7 +17,7 @@ def main():
         root = tk.Tk()
         root.protocol("WM_DELETE_WINDOW", lambda: on_close(root))
         root.title("Scorpion")
-        root.geometry("600x800")
+        root.geometry("600x1200")
 
         open_frame = tk.Frame(root, borderwidth=1, relief="solid")
         open_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
@@ -38,7 +38,8 @@ def main():
         root.rowconfigure(4, weight=0)
 
         img_lbl = tk.Label(image_frame, text="image preview")
-        img_lbl.pack()
+        # img_lbl.pack()
+        img_lbl.pack(expand=True)
 
         tree = ttk.Treeview(data_frame, columns=("name", "value"), show="headings")
         tree.heading("name", text="Metadata")

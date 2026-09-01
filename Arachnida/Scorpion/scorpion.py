@@ -49,6 +49,8 @@ def init_parser() -> Params:
     newdata = {}
     if args.modify is not None:
         for m in args.modify:
+            if "=" not in m:
+                parser.error(f"Invalid format for -m: '{m}'. Expected Name=Value")
             key, value = m.split("=", 1)
             newdata[key] = value
 

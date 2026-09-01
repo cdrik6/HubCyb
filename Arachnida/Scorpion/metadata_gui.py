@@ -58,8 +58,8 @@ def get_photo(file: str, exts: list[str]) -> ImageTk.PhotoImage | None:
         with Image.open(file) as img:
             if img.format is None or not check_exts(img.format, exts):
                 print(f"Format not recognized: {file}")
-            else:                
-                img.thumbnail((500, 500))
+            else:
+                img.thumbnail((300, 300))
                 photo = ImageTk.PhotoImage(img)                    
                 return photo                
     except OSError as e:
